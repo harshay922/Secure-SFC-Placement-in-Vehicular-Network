@@ -1,0 +1,9 @@
+attacker,scheme,poisoned_%,delay_ms
+Always-bad,SPAVM + Trust (ours),1.16,177.7
+Always-bad,+ trust-based sharing limit,1.1,254.8
+On-off,SPAVM + Trust (ours),0.44,181.1
+On-off,+ trust-based sharing limit,1.44,240.4
+Stealthy,SPAVM + Trust (ours),1.13,171.8
+Stealthy,+ trust-based sharing limit,0.9,250.5
+40% attackers,SPAVM + Trust (ours),2.29,198.1
+40% attackers,+ trust-based sharing limit,1.97,253.3

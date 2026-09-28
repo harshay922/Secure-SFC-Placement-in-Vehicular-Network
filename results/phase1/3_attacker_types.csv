@@ -1,0 +1,7 @@
+attacker,scheme,poisoned_%,detect_slot
+Always-bad,SPAVM (no trust),29.45,
+Always-bad,SPAVM + Trust (ours),1.16,1.8
+On-off,SPAVM (no trust),13.58,
+On-off,SPAVM + Trust (ours),0.44,7.1
+Stealthy (tampers 20%),SPAVM (no trust),13.09,
+Stealthy (tampers 20%),SPAVM + Trust (ours),1.13,4.2
