@@ -11,8 +11,8 @@ class SPVIR:
 
     def place(self, req):
         s = self.s
-        d0, n_init = min((dc.distance(req.vehicle, r), r.rid) for r in s.rsus)   # line 1
-        if d0 > config.COVERAGE_R:
+        n_init, d0 = s.choose_ingress(req)                                    # line 1 (PHASE 2: may use confidence)
+        if n_init is None or d0 > config.COVERAGE_R:
             return None, "cloud_uncovered"                                    # lines 2-3
         steps, prev = [], n_init
         for f in req.chain:                                                   # line 5
@@ -40,7 +40,11 @@ class SPVIR:
             c.load += 1
             steps.append((c, cold))
             prev = c.rsu
-        return Placement(req, n_init, steps), d0
+        p = Placement(req, n_init, steps)
+        if s.phase2:                                                          # PHASE 2 bookkeeping
+            p.alt_init = req.receiver
+            p.true_init = s.nearest_rsu((req.vehicle.x, req.vehicle.y))[0]
+        return p, d0
 
     def _rollback(self, steps):            # all-or-nothing per SFC request
         for c, cold in reversed(steps):

@@ -88,3 +88,4 @@ Trust enters in one place: the reuse candidate filter in `spvir.py`
 (find reusable → check resources/hops → **check trust** → reuse or redeploy).
 
 **Phase 1 is now implemented. See `README_PHASE1.md`.**
+**Phase 2 is now implemented. See `README_PHASE2.md`.**

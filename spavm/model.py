@@ -45,6 +45,11 @@ class SFCRequest:
     vehicle: Vehicle
     chain: list               # ordered list of VNFType
     size_bits: float          # L_k
+    # ---- PHASE 2 (filled only when mobility reports are simulated) ----
+    reported: tuple = None    # position the vehicle CLAIMS (x, y)
+    receiver: int = None      # RSU that physically received the message (None = nobody heard it)
+    conf: float = 1.0         # confidence in the reported position (Step 2)
+    is_liar: bool = False     # ground truth, used ONLY for measuring results
 
 
 @dataclass
@@ -52,6 +57,8 @@ class Placement:
     request: SFCRequest
     n_init: int
     steps: list               # [(Container, is_cold_start), ...] in chain order
+    alt_init: int = None      # PHASE 2: fallback ingress (the receiving RSU)
+    true_init: int = None     # PHASE 2: nearest RSU to the TRUE position (for measuring only)
 
     @property
     def rsus(self):

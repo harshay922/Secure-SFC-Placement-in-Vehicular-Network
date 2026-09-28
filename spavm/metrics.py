@@ -27,7 +27,20 @@ class Metrics:
             poisoned=T("poisoned"),
             poisoned_rate=round(T("poisoned") / acc, 4) if acc else 0.0,   # share of served SFCs corrupted
             secure_rate=round(1 - T("poisoned") / acc, 4) if acc else 1.0,
-            probes=T("probes"), lies_caught=T("lies_caught"), drained=T("drained"))
+            probes=T("probes"), lies_caught=T("lies_caught"), drained=T("drained"),
+            # ---- PHASE 2 mobility ----
+            honest_net_delay_ms=round(T("honest_net_delay") / T("honest_served") * 1000, 2) if T("honest_served") else 0.0,
+            honest_acceptance=round(T("honest_accepted") / T("honest_reqs"), 4) if T("honest_reqs") else 0.0,
+            misdirected=T("misdirected"), wasted_cold=T("wasted_cold"),
+            corrupt_mig=T("corrupt_mig"),
+            corrupt_mig_rate=round(T("corrupt_mig") / T("migrations"), 4) if T("migrations") else 0.0,
+            mig_cost=round(T("R_mig"), 3),
+            sess_mig_per_slot=round(T("sess_mig") / len(self.rows), 3) if self.rows else 0.0,
+            sess_cost_per_slot=round(T("sess_cost") / len(self.rows), 3) if self.rows else 0.0,
+            sess_corrupt_rate=round(T("sess_corrupt") / T("sess_mig"), 4) if T("sess_mig") else 0.0,
+            honest_access_ms=round(T("sess_access_delay") / T("sess_honest") * 1000, 2) if T("sess_honest") else 0.0,
+            liar_flag_rate=round(T("liar_flagged") / T("liar_reports"), 4) if T("liar_reports") else 0.0,
+            honest_flag_rate=round(T("honest_flagged") / T("honest_reports"), 4) if T("honest_reports") else 0.0)
 
     def to_csv(self, path):
         if not self.rows:

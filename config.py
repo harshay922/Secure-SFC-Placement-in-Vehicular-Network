@@ -76,3 +76,30 @@ TRUST_THETA_Q = 0.3               # below this (with enough evidence) -> quarant
 #   RSU still unknown (little evidence)     -> SHARE_UNKNOWN SFCs
 #   trusted RSU                              -> grows from 1 (at T = TRUST_THETA) to MAX_SHARE (at T = 1)
 SHARE_UNKNOWN = 1
+
+# =====================================================================
+# PHASE 2: Secure VNF migration under falsified mobility reports
+# All names start with P2_ so they can never overwrite a SPAVM / Phase 1 setting.
+# =====================================================================
+# ---- Step 1: mobility attacker (attack types and parameters from the VeReMi dataset paper) ----
+P2_LIAR_FRACTION = 0.2        # share of vehicles that falsify their reported position
+P2_LIAR_MODE = "mixed"        # "const_pos" | "const_offset" | "random_pos" | "random_offset" | "eventual_stop" | "mixed"
+P2_CONST_OFFSET = (250.0, -150.0)   # [VeReMi] constant offset attack, metres
+P2_RANDOM_OFFSET = 300.0      # [VeReMi] random offset drawn from [-300, 300] m in x and y
+P2_STOP_STEP = 0.025          # [VeReMi] eventual stop: probability of freezing grows by this each report
+P2_GPS_NOISE_M = 5.0          # honest GPS error (std dev, metres)
+P2_GPS_FAULT_P = 0.02         # chance an honest vehicle's GPS is badly wrong in one slot
+P2_GPS_FAULT_M = 150.0        # size of such an honest GPS fault, metres
+
+# ---- Step 2: confidence score ----
+P2_SHADOW_DB = 4.0            # random signal fluctuation (log-normal shadowing), dB
+P2_RSSI_TOL_DB = 8.0          # tolerance when comparing measured vs expected signal, dB
+P2_V_MAX = 40.0               # fastest plausible vehicle speed, m/s
+P2_SPEED_TOL = 10.0           # softness of the speed check, m/s
+P2_CONF_USE = 0.5             # below this confidence, the reported position is not used
+
+# ---- Step 3b: follow-me service migration (each vehicle's service follows the vehicle) ----
+P2_FOLLOW_HOPS = 1            # migrate a vehicle's service when it is more than 1 hop from the vehicle's RSU
+
+# ---- Step 4: migration storm guard ----
+P2_STABLE_SLOTS = 2           # only migrate if the new target RSU is the same for 2 slots in a row

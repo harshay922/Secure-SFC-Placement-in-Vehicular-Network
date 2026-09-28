@@ -28,7 +28,10 @@ class VIMA:
         cands.sort(key=lambda c: (c.rsu not in loop_nodes, s.G.degree[c.rsu], c.cid))
         return cands[:config.VIMA_MAX_CANDIDATES]
 
-    def evaluate(self, placements, moves):  # U(H) for a set of moves; None if infeasible
+    def evaluate(self, placements, moves, truth=False):
+        """U(H) for a set of moves; None if infeasible.
+        truth=True (PHASE 2, measuring only): score with every chain starting at the vehicle's TRUE
+        nearest RSU, to check whether a decision still makes sense once lies are removed."""
         s = self.s
         pos = {c.cid: c.rsu for p in placements for c, _ in p.steps}
         delta = {r.rid: {"cpu": 0.0, "mem": 0.0, "bw": 0.0} for r in s.rsus}
@@ -47,19 +50,39 @@ class VIMA:
             if any(r.used[k] + delta[r.rid][k] > r.cap[k] + 1e-9 for k in r.cap):
                 return None
         # after moving, every chain must still respect the hop limit mu
-        for p in placements:
+        for p in ([] if truth else placements):
             prev = p.n_init
             for c, _ in p.steps:
                 ref = prev if config.HOP_REFERENCE == "predecessor" else p.n_init
                 if s.hop[ref][pos[c.cid]] > config.MU_HOPS:
                     return None
                 prev = pos[c.cid]
-        hops = sum(dc.path_hops(p.n_init, [pos[c.cid] for c, _ in p.steps], s.hop) for p in placements)
+        hops = 0.0
+        for p in placements:
+            rs = [pos[c.cid] for c, _ in p.steps]
+            if truth:
+                hops += dc.path_hops(p.true_init if p.true_init is not None else p.n_init, rs, s.hop)
+                continue
+            hops += dc.path_hops(p.n_init, rs, s.hop)
         delay = dc.d_hop(hops) + dc.d_mig(len(moves))
         return s.queues.objective(R, delay), R, delay             # eq. 31
 
+    def _count_corrupt(self, placements, moves):
+        """PHASE 2 metric: a chosen migration is 'corrupted' if, judged with TRUE positions,
+        dropping it would be at least as good (it only looked useful because of false reports)."""
+        if not moves:
+            return 0
+        full = self.evaluate(placements, moves, truth=True)
+        bad = 0
+        for m in moves:
+            without = self.evaluate(placements, [x for x in moves if x is not m], truth=True)
+            if full is not None and without is not None and full[0] >= without[0] - 1e-12:
+                bad += 1
+        return bad
+
     def run(self, placements):
         s = self.s
+        self.last_corrupt = 0
         if not placements:
             return [], [0.0] * len(s.rsus)
         U_best, R_best, _ = self.evaluate(placements, [])         # lines 3-5: H0 = no migration
@@ -80,6 +103,7 @@ class VIMA:
             U, moves, R = min(H, key=lambda h: (h[0], len(h[1])))  # lines 23-25
             if U < U_best - 1e-12:
                 U_best, best_moves, R_best = U, moves, R
+        self.last_corrupt = self._count_corrupt(placements, best_moves) if getattr(s, "phase2", False) else 0
         for c, _ in best_moves:                                   # apply: release all, then reserve
             s.rm.release(c.rsu, c.vnf.demand())
         for c, nj in best_moves:
