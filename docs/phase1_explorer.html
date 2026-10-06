@@ -1,0 +1,551 @@
+<title>Phase 1 Trust Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: sticky tab bar over one content column; each tab is a self-contained lab or reference sheet. */
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --surface2:#eef1f5; --line:#d9dee6;
+  --fg:#14181f; --fg2:#4b5361; --fg3:#7a8292;
+  --accent:#2a78d6; --accent-soft:#e3eefb;
+  --bad:#d4572b; --bad-soft:#fbe9e2; --good:#178f63; --good-soft:#e0f4ec; --warn:#b07b00; --warn-soft:#fbf1d6;
+  --code-bg:#f1f3f7;
+  --f-body:"Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1318; --surface:#171c23; --surface2:#1e252e; --line:#2c3440;
+  --fg:#e8ecf2; --fg2:#aab3c0; --fg3:#7d8796;
+  --accent:#5b9cf0; --accent-soft:#1b2a3d;
+  --bad:#f0855c; --bad-soft:#3a2219; --good:#3cc58f; --good-soft:#15302a; --warn:#e2b545; --warn-soft:#352c14;
+  --code-bg:#12171d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1318; --surface:#171c23; --surface2:#1e252e; --line:#2c3440;
+  --fg:#e8ecf2; --fg2:#aab3c0; --fg3:#7d8796;
+  --accent:#5b9cf0; --accent-soft:#1b2a3d;
+  --bad:#f0855c; --bad-soft:#3a2219; --good:#3cc58f; --good-soft:#15302a; --warn:#e2b545; --warn-soft:#352c14;
+  --code-bg:#12171d; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55;margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:20px 60px}
+header h1{font-size:28px;line-height:1.2;margin:0 0 6px;font-weight:700;text-wrap:balance;letter-spacing:-.01em}
+header p{margin:0;color:var(--fg2);max-width:70ch}
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;gap:6px;flex-wrap:wrap;padding-block:14px 10px;border-bottom:1px solid var(--line);margin-bottom:22px}
+.tab{font:inherit;font-weight:600;font-size:14px;border:1px solid var(--line);background:var(--surface);color:var(--fg2);padding:7px 13px;border-radius:999px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.tab:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h2{font-size:21px;margin:0 0 6px;text-wrap:balance}
+h3{font-size:16px;margin:18px 0 6px}
+.lead{color:var(--fg2);margin:0 0 18px;max-width:72ch}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+@media (max-width:820px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.eyebrow{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--fg3);font-weight:600;margin:0 0 6px}
+button.b{font:inherit;font-size:13.5px;font-weight:600;padding:8px 11px;border-radius:7px;border:1px solid var(--line);background:var(--surface2);color:var(--fg);cursor:pointer;text-align:left}
+button.b:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.goodb{border-left:4px solid var(--good)}
+button.badb{border-left:4px solid var(--bad)}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-variant-numeric:tabular-nums}
+.kv dt{color:var(--fg3)} .kv dd{margin:0;font-weight:600}
+.big{font-size:40px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.pill{display:inline-block;font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:999px}
+.pill.ok{background:var(--good-soft);color:var(--good)} .pill.no{background:var(--bad-soft);color:var(--bad)} .pill.unk{background:var(--warn-soft);color:var(--warn)}
+code,.mono{font-family:var(--f-mono);font-size:12.8px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;margin:8px 0;font-family:var(--f-mono);font-size:12.5px;line-height:1.5}
+.formula{font-family:var(--f-mono);background:var(--code-bg);border-radius:8px;padding:10px 12px;font-size:13px;overflow-x:auto;white-space:pre}
+table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{color:var(--fg3);font-weight:600;font-size:12.5px}
+.tblwrap{overflow-x:auto}
+label.ctl{display:grid;grid-template-columns:120px minmax(0,1fr) 54px;align-items:center;gap:8px;font-size:13.5px;margin:6px 0}
+label.ctl output{font-family:var(--f-mono);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent)}
+select{font:inherit;padding:6px 8px;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 14px}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:10px;cursor:pointer;text-align:left;font:inherit;color:var(--fg)}
+.step .n{font-family:var(--f-mono);font-size:12px;color:var(--fg3)}
+.step .t{font-weight:600;font-size:14px;display:block;margin-top:2px}
+.step.p1{border-color:var(--accent);background:var(--accent-soft)}
+.step[aria-pressed="true"]{outline:2px solid var(--accent)}
+.note{font-size:13px;color:var(--fg2)}
+details{border:1px solid var(--line);border-radius:9px;background:var(--surface);margin:8px 0}
+summary{cursor:pointer;padding:10px 14px;font-weight:600;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+summary::-webkit-details-marker{display:none}
+summary .file{font-family:var(--f-mono);font-size:12px;color:var(--fg3);font-weight:400}
+details .body{padding:0 14px 12px}
+.calls{font-size:13px;color:var(--fg2)}
+svg text{font-family:var(--f-body)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--fg2)}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.chartbox{overflow-x:auto}
+.qa dt{font-weight:600;margin-top:12px} .qa dd{margin:4px 0 0;color:var(--fg2)}
+.tag{font-size:11.5px;font-weight:700;padding:2px 7px;border-radius:5px;background:var(--surface2);color:var(--fg2)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">MTP · Secure SFC placement · Phase 1</p>
+  <h1>How trust protects SPAVM from hacked RSUs</h1>
+  <p>Try every piece yourself: the attacker, the trust formula, the blame split, a live 10-RSU run, and the real code of every function. The numbers match <code>config.py</code>.</p>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Sections">
+  <button class="tab" role="tab" id="t-flow" aria-selected="true" data-tab="flow">1 · Big picture</button>
+  <button class="tab" role="tab" id="t-lab" aria-selected="false" data-tab="lab">2 · Trust calculator</button>
+  <button class="tab" role="tab" id="t-blame" aria-selected="false" data-tab="blame">3 · Blame split</button>
+  <button class="tab" role="tab" id="t-sim" aria-selected="false" data-tab="sim">4 · Live network</button>
+  <button class="tab" role="tab" id="t-code" aria-selected="false" data-tab="code">5 · Every function</button>
+  <button class="tab" role="tab" id="t-guide" aria-selected="false" data-tab="guide">6 · For your guide</button>
+</nav>
+
+<!-- ============ 1 FLOW ============ -->
+<section id="p-flow" role="tabpanel">
+  <h2>One time slot, with Phase 1 added</h2>
+  <p class="lead">Everything SPAVM does stays the same. Phase 1 adds one question in three places (blue) and one learning step at the end of each slot. Click any step.</p>
+  <div class="flow" id="flow"></div>
+  <div class="panel" id="flowInfo"></div>
+  <h3>The idea in four lines</h3>
+  <ol>
+    <li><b>Problem:</b> SPAVM reuses containers. A hacked RSU corrupts every chain that reuses its container, and it lies that it is healthy.</li>
+    <li><b>Evidence:</b> the controller never trusts self-reports. It uses test packets (probes), end-to-end checks of chains, and catching lies.</li>
+    <li><b>Score:</b> evidence becomes a trust score T between 0 and 1 for every RSU (Beta reputation).</li>
+    <li><b>Gate:</b> SPVIR and VIMA skip any RSU whose trust is too low. Result: poisoned chains 29.4% → 1.2%.</li>
+  </ol>
+</section>
+
+<!-- ============ 2 LAB ============ -->
+<section id="p-lab" role="tabpanel" hidden>
+  <h2>Trust calculator for one RSU</h2>
+  <p class="lead">Add evidence during a slot, then press <b>End slot</b>. This runs exactly the code of <code>TrustManager.end_slot()</code> and <code>allowed()</code>.</p>
+  <div class="grid2">
+    <div class="panel">
+      <p class="eyebrow">1. Evidence during this slot</p>
+      <div class="btns" style="flex-direction:column">
+        <button class="b goodb" id="ev-pp">Probe passed → good + 1</button>
+        <button class="b badb" id="ev-pf">Probe failed, RSU admits it (honest fault) → bad + 1</button>
+        <button class="b badb" id="ev-pl">Probe failed, RSU says "healthy" (lie) → bad + 1 + LIE_PENALTY</button>
+        <button class="b goodb" id="ev-cs">Chain succeeded (2 RSUs) → good + 1/2</button>
+        <button class="b badb" id="ev-cf">Chain failed (2 RSUs, partner T = 0.5) → bad + my blame share</button>
+      </div>
+      <p class="note" id="pending" style="margin-top:10px"></p>
+      <div class="btns"><button class="b primary" id="endslot">End slot (apply formula)</button><button class="b" id="reset">Reset</button>
+        <button class="b" id="demo">Load example: honest, then hacked</button></div>
+      <h3>Settings (from config.py)</h3>
+      <label class="ctl" for="g">γ forgetting <input type="range" id="g" min="0.5" max="1" step="0.05" value="0.9"><output id="go">0.90</output></label>
+      <label class="ctl" for="r">ρ bad weight <input type="range" id="r" min="1" max="5" step="0.5" value="3"><output id="ro">3.0</output></label>
+      <label class="ctl" for="lp">LIE_PENALTY <input type="range" id="lp" min="0" max="4" step="0.5" value="2"><output id="lpo">2.0</output></label>
+      <label class="ctl" for="th">TRUST_THETA <input type="range" id="th" min="0.4" max="0.9" step="0.05" value="0.6"><output id="tho">0.60</output></label>
+      <label class="ctl" for="nm">N_MIN <input type="range" id="nm" min="0" max="6" step="1" value="3"><output id="nmo">3</output></label>
+    </div>
+    <div class="panel">
+      <p class="eyebrow">2. Result after the last End slot</p>
+      <div style="display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap">
+        <div><div class="note">trust T</div><div class="big" id="Tval">0.50</div></div>
+        <div><span class="pill" id="gatePill">allowed</span></div>
+      </div>
+      <dl class="kv" style="margin-top:12px">
+        <dt>a (good)</dt><dd id="aval">0</dd><dt>b (bad)</dt><dd id="bval">0</dd>
+        <dt>n = a + b</dt><dd id="nval">0</dd><dt>slot</dt><dd id="sval">0</dd>
+      </dl>
+      <p class="eyebrow" style="margin-top:14px">The formula with your numbers</p>
+      <div class="formula" id="formula"></div>
+      <p class="eyebrow" style="margin-top:14px">Trust over slots</p>
+      <div class="chartbox"><svg id="labChart" viewBox="0 0 460 170" width="100%" role="img" aria-label="Trust score per slot"></svg></div>
+      <p class="note" id="gateWhy"></p>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:18px">
+    <p class="eyebrow">History</p>
+    <div class="tblwrap"><table><thead><tr><th>slot</th><th>good added</th><th>bad added</th><th>a</th><th>b</th><th>T</th><th>n</th><th>gate</th></tr></thead><tbody id="hist"></tbody></table></div>
+  </div>
+</section>
+
+<!-- ============ 3 BLAME ============ -->
+<section id="p-blame" role="tabpanel" hidden>
+  <h2>Who gets blamed when a chain fails?</h2>
+  <p class="lead">The end-to-end check only says "this chain failed". It cannot see which RSU did it. So 1 unit of blame is split over the RSUs on the chain, more to those already less trusted: weight = (1 − T) + 0.001. Move the sliders.</p>
+  <div class="grid2">
+    <div class="panel">
+      <label class="ctl" for="bt1">RSU A trust <input type="range" id="bt1" min="0" max="1" step="0.05" value="0.9"><output id="bt1o">0.90</output></label>
+      <label class="ctl" for="bt2">RSU B trust <input type="range" id="bt2" min="0" max="1" step="0.05" value="0.5"><output id="bt2o">0.50</output></label>
+      <label class="ctl" for="bt3">RSU C trust <input type="range" id="bt3" min="0" max="1" step="0.05" value="0.3"><output id="bt3o">0.30</output></label>
+      <label class="ctl" for="bk">RSUs on chain <select id="bk"><option value="2">2 (A, B)</option><option value="3" selected>3 (A, B, C)</option></select><span></span></label>
+      <p class="note">Success instead? Each RSU simply gets good + 1/k, equal shares.</p>
+    </div>
+    <div class="panel">
+      <div class="tblwrap"><table><thead><tr><th>RSU</th><th>T</th><th>weight (1−T)+0.001</th><th>blame share</th><th>bad added (× ρ = 3 at end of slot)</th></tr></thead><tbody id="blameT"></tbody></table></div>
+      <svg id="blameBar" viewBox="0 0 460 46" width="100%" role="img" aria-label="Blame split bar" style="margin-top:12px"></svg>
+      <p class="note">Why this way: the RSU already under suspicion is the most likely culprit. An honest RSU that shares a chain with a hacked one still gets a little blame, which is the main cause of the ~4.4% false blocks.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4 SIM ============ -->
+<section id="p-sim" role="tabpanel" hidden>
+  <h2>Live network: 10 RSUs, same attack, three schemes</h2>
+  <p class="lead">A simplified version of <code>_security()</code> running in your browser: about 8 chains per slot, each passing 2–3 RSUs; 3 probes per slot; the same Attacker and TrustManager rules. SPAVM, Trust and Oracle face the same hacked RSUs. For thesis numbers use <code>results/phase1</code>, not this demo.</p>
+  <div class="panel">
+    <div class="btns" style="align-items:center">
+      <label for="sm-mode" class="note">Attacker</label>
+      <select id="sm-mode"><option value="always">Always-bad (tampers 80%)</option><option value="onoff">On-off (5 good / 5 bad slots)</option><option value="stealthy">Stealthy (tampers 20%)</option></select>
+      <label for="sm-frac" class="note">Hacked</label>
+      <select id="sm-frac"><option value="0.1">10% (1 RSU)</option><option value="0.2" selected>20% (2 RSUs)</option><option value="0.3">30% (3 RSUs)</option><option value="0.4">40% (4 RSUs)</option></select>
+      <label for="sm-seed" class="note">Seed</label>
+      <select id="sm-seed"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+    </div>
+    <div class="btns" style="margin-top:10px">
+      <button class="b" id="sm-step">Step 1 slot</button>
+      <button class="b primary" id="sm-play">Play 50 slots</button>
+      <button class="b" id="sm-reset">Reset</button>
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:18px">
+    <div class="panel">
+      <p class="eyebrow">Trust scheme · RSU trust right now (slot <span id="sm-t">0</span>)</p>
+      <svg id="sm-net" viewBox="0 0 360 300" width="100%" role="img" aria-label="RSU trust map"></svg>
+      <div class="legend"><span><span class="sw" style="background:var(--good)"></span>allowed</span><span><span class="sw" style="background:var(--bad)"></span>blocked by gate</span><span><span class="sw" style="background:var(--warn)"></span>not enough evidence yet</span><span>✕ = really hacked</span></div>
+    </div>
+    <div class="panel">
+      <p class="eyebrow">Poisoned chains so far (cumulative %)</p>
+      <div class="chartbox"><svg id="sm-chart" viewBox="0 0 460 220" width="100%" role="img" aria-label="Cumulative poisoned percentage per scheme"></svg></div>
+      <div class="tblwrap"><table><thead><tr><th>Scheme</th><th>chains served</th><th>poisoned</th><th>poisoned %</th><th>honest RSUs blocked now</th></tr></thead><tbody id="sm-tab"></tbody></table></div>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:18px">
+    <p class="eyebrow">What happened in the last slot (Trust scheme)</p>
+    <div id="sm-log" class="note mono" style="white-space:pre-wrap"></div>
+  </div>
+</section>
+
+<!-- ============ 5 CODE ============ -->
+<section id="p-code" role="tabpanel" hidden>
+  <h2>Every Phase 1 function, in the order it is used</h2>
+  <p class="lead">Real code from the project (long comments removed). Open any card. "Called from" tells you where it fits.</p>
+  <div id="codeList"></div>
+</section>
+
+<!-- ============ 6 GUIDE ============ -->
+<section id="p-guide" role="tabpanel" hidden>
+  <h2>What to tell your guide</h2>
+  <div class="grid2">
+    <div class="panel">
+      <p class="eyebrow">Headline results · 10 RSUs, 50 slots, 5 seeds</p>
+      <div class="tblwrap"><table><thead><tr><th>Case</th><th>SPAVM</th><th>+ Trust</th><th>Oracle</th></tr></thead><tbody>
+        <tr><td>20% hacked, always-bad</td><td>29.4%</td><td><b>1.2%</b></td><td>0%</td></tr>
+        <tr><td>40% hacked, always-bad</td><td>51.7%</td><td><b>2.3%</b></td><td>0%</td></tr>
+        <tr><td>20% hacked, on-off</td><td>13.6%</td><td><b>0.4%</b></td><td>0%</td></tr>
+        <tr><td>20% hacked, stealthy</td><td>13.1%</td><td><b>1.1%</b></td><td>0%</td></tr>
+      </tbody></table></div>
+      <p class="note">Price: ~4.4% of honest RSU-slots wrongly blocked; acceptance 96.9% → 96.0%. Hacked RSUs blocked within 2–3 slots.</p>
+    </div>
+    <div class="panel">
+      <p class="eyebrow">Every parameter and why</p>
+      <div class="tblwrap"><table><thead><tr><th>Name</th><th>Value</th><th>Reason</th></tr></thead><tbody>
+        <tr><td><code>ATTACK_FRACTION</code></td><td>0.2</td><td>Test level (2 of 10 RSUs); swept 0–40%</td></tr>
+        <tr><td><code>P_TAMPER</code></td><td>0.8</td><td>Strong but not certain; stealthy uses 0.2</td></tr>
+        <tr><td><code>P_FAULT</code></td><td>0.02</td><td>Honest noise, so failure ≠ proof</td></tr>
+        <tr><td><code>OUTCOME_DETECT</code></td><td>0.9</td><td>End-to-end checks miss 10%</td></tr>
+        <tr><td><code>GAMMA</code> γ</td><td>0.9</td><td>Old evidence halves in ~7 slots</td></tr>
+        <tr><td><code>RHO</code> ρ</td><td>3</td><td>Slow to gain, fast to lose; best in sweep 1–5</td></tr>
+        <tr><td><code>LIE_PENALTY</code></td><td>2</td><td>Lying is worse than failing</td></tr>
+        <tr><td><code>PROBE_FRACTION</code></td><td>0.3</td><td>3 of 10 RSUs tested per slot</td></tr>
+        <tr><td><code>N_MIN</code></td><td>3</td><td>Benefit of the doubt for new RSUs</td></tr>
+        <tr><td><code>TRUST_THETA</code></td><td>0.6</td><td>Must be better than "unknown" (0.5)</td></tr>
+        <tr><td><code>TRUST_THETA_Q</code></td><td>0.3</td><td>Quarantine level (optional mode)</td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:18px">
+    <p class="eyebrow">Questions he may ask</p>
+    <dl class="qa">
+      <dt>Why not just ask the RSU if it is healthy?</dt><dd>A hacked RSU always says yes. We use only evidence the controller checks itself, and a caught lie becomes extra evidence against it.</dd>
+      <dt>Why does 20% hacked give 29% poisoned?</dt><dd>Reuse spreads the damage: one container serves up to 4 chains per slot, and a chain passes 2–6 VNFs on several RSUs, so many chains touch at least one hacked RSU.</dd>
+      <dt>Why Beta reputation?</dt><dd>It is the standard reputation model (Jøsang &amp; Ismail 2002). T = (a+1)/(a+b+2) is the mean of Beta(a+1, b+1); it starts at 0.5 = unknown and needs only two counters per RSU.</dd>
+      <dt>What stops an on-off attacker?</dt><dd>ρ = 3: one bad slot cancels about three good ones, and γ keeps the memory for several slots, so the RSU cannot rebuild trust in its 5 "good" slots.</dd>
+      <dt>Why are honest RSUs sometimes blocked?</dt><dd>Random faults (2%) and shared blame on failed chains. About 4.4% of honest RSU-slots; they recover through passed probes, usually in one slot.</dd>
+      <dt>What did you change in SPAVM itself?</dt><dd>Only a trust check in three places: SPVIR reuse, SPVIR cold start, VIMA target. With trust off, results are identical to the baseline (tested).</dd>
+      <dt>What did you try and reject?</dt><dd>A trust-based sharing limit (Step 5) and quarantine. The sharing limit added 30–45% delay with no safety gain; quarantine gave the same result as the gate.</dd>
+      <dt>What are the limits?</dt><dd>The controller is assumed honest; a hacked RSU can't tell probes from real traffic; attackers must be a minority. Parameters are our choices, not from SPAVM.</dd>
+    </dl>
+  </div>
+</section>
+</div>
+
+<script>
+/* ---------- tabs ---------- */
+const tabs=[...document.querySelectorAll('.tab')];
+function show(id){tabs.forEach(t=>{const on=t.dataset.tab===id;t.setAttribute('aria-selected',on);document.getElementById('p-'+t.dataset.tab).hidden=!on});
+  try{localStorage.setItem('p1tab',id)}catch(e){}}
+tabs.forEach(t=>t.addEventListener('click',()=>show(t.dataset.tab)));
+try{const s=localStorage.getItem('p1tab');if(s&&document.getElementById('p-'+s))show(s)}catch(e){}
+const $=id=>document.getElementById(id);
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- 1 flow ---------- */
+const FLOW=[
+ ["1","Reset loads",false,"Every container's load goes back to 0 for the new slot.","simulator.py · _slot()"],
+ ["2","Drain quarantined",true,"Only in quarantine mode: containers on quarantined RSUs are removed (Simulator._drain_quarantined). In gate mode nothing happens here.","simulator.py · _drain_quarantined()"],
+ ["3","Move vehicles",false,"Every car drives 5 s and bounces at the map edge.","workload.py · move_vehicles()"],
+ ["4","New requests",false,"Poisson requests, λ = 0.2 per car per slot.","workload.py · generate_requests()"],
+ ["5","SPVIR placement",true,"For each VNF: reuse a container only if its RSU passes gate(); cold start only on an RSU that passes gate(). Phase 1 adds exactly these two checks.","spvir.py · place()"],
+ ["6","VIMA migration",true,"A migration target must pass gate(). A container is never moved onto a distrusted RSU.","vima.py · evaluate()"],
+ ["7","Hop delay",false,"Delay of the final paths (eq. 11).","simulator.py"],
+ ["8","Security step",true,"_security(t): (a) for each served chain, did a hacked RSU tamper? (ground truth = poisoned); did the end-to-end check notice? → record_outcome. (b) probe 3 random RSUs → record_probe (catches lies). (c) end_slot(): apply γ and ρ → new trust T for every RSU. (d) count blocked hacked / honest RSUs.","simulator.py · _security()"],
+ ["9","Lyapunov update",false,"Migration debt Q per RSU (eq. 20). Unchanged by Phase 1.","lyapunov.py"],
+ ["10","Idle deletion & totals",false,"Delete containers idle 3 slots; add up delay and cost; check capacity.","simulator.py"]
+];
+const flow=$('flow');
+FLOW.forEach((f,i)=>{const b=document.createElement('button');b.className='step'+(f[2]?' p1':'');b.setAttribute('aria-pressed','false');
+ b.innerHTML=`<span class="n">step ${f[0]}${f[2]?' · Phase 1':''}</span><span class="t">${f[1]}</span>`;
+ b.onclick=()=>pickFlow(i);flow.appendChild(b)});
+function pickFlow(i){[...flow.children].forEach((c,j)=>c.setAttribute('aria-pressed',i===j));const f=FLOW[i];
+ $('flowInfo').innerHTML=`<p class="eyebrow">${f[2]?'Phase 1 hook':'Baseline step (unchanged)'} · <span class="mono">${f[4]}</span></p><h3 style="margin-top:0">${f[1]}</h3><p style="margin:0">${f[3]}</p>`}
+pickFlow(7);
+/* ---------- 2 lab ---------- */
+const L={a:0,b:0,good:0,bad:0,t:0,hist:[]};
+const P=()=>({g:+$('g').value,r:+$('r').value,lp:+$('lp').value,th:+$('th').value,nm:+$('nm').value});
+const Tof=(a,b)=>(a+1)/(a+b+2);
+function gateOf(a,b,p){const n=a+b;if(n<p.nm)return['unk','allowed (not enough evidence)',`n = ${n.toFixed(2)} < N_MIN = ${p.nm}, so the gate gives the benefit of the doubt.`];
+ const T=Tof(a,b);return T>=p.th?['ok','allowed',`T = ${T.toFixed(3)} ≥ TRUST_THETA = ${p.th.toFixed(2)}`]:['no','blocked',`T = ${T.toFixed(3)} < TRUST_THETA = ${p.th.toFixed(2)} with n = ${n.toFixed(2)} ≥ ${p.nm}`]}
+function addEv(kind){const p=P();
+ if(kind==='pp')L.good+=1; if(kind==='pf')L.bad+=1; if(kind==='pl')L.bad+=1+p.lp; if(kind==='cs')L.good+=0.5;
+ if(kind==='cf'){const wMe=(1-Tof(L.a,L.b))+1e-3,wP=(1-0.5)+1e-3;L.bad+=wMe/(wMe+wP)}
+ renderLab()}
+function endSlot(){const p=P();const a0=L.a,b0=L.b,gd=L.good,bd=L.bad;
+ L.a=p.g*L.a+L.good;L.b=p.g*L.b+p.r*L.bad;L.t+=1;
+ L.last={a0,b0,gd,bd,p};L.hist.push({t:L.t,gd,bd,a:L.a,b:L.b});L.good=L.bad=0;renderLab()}
+function renderLab(){const p=P();
+ $('go').textContent=p.g.toFixed(2);$('ro').textContent=p.r.toFixed(1);$('lpo').textContent=p.lp.toFixed(1);$('tho').textContent=p.th.toFixed(2);$('nmo').textContent=p.nm;
+ $('pending').innerHTML=`Waiting to be applied this slot: <b>good = ${L.good.toFixed(3)}</b>, <b>bad = ${L.bad.toFixed(3)}</b>`;
+ const T=Tof(L.a,L.b);$('Tval').textContent=T.toFixed(3);$('aval').textContent=L.a.toFixed(3);$('bval').textContent=L.b.toFixed(3);
+ $('nval').textContent=(L.a+L.b).toFixed(3);$('sval').textContent=L.t;
+ const g=gateOf(L.a,L.b,p);const pill=$('gatePill');pill.className='pill '+g[0];pill.textContent=g[1];$('gateWhy').textContent='Gate: '+g[2];
+ if(L.last){const s=L.last;$('formula').textContent=
+`a = γ·a + good  = ${s.p.g}·${s.a0.toFixed(3)} + ${s.gd.toFixed(3)} = ${L.a.toFixed(3)}
+b = γ·b + ρ·bad = ${s.p.g}·${s.b0.toFixed(3)} + ${s.p.r}·${s.bd.toFixed(3)} = ${L.b.toFixed(3)}
+T = (a+1)/(a+b+2) = ${(L.a+1).toFixed(3)}/${(L.a+L.b+2).toFixed(3)} = ${T.toFixed(3)}`}
+ else $('formula').textContent='a = 0, b = 0  →  T = (0+1)/(0+0+2) = 0.500   (unknown RSU)';
+ $('hist').innerHTML=L.hist.map(h=>{const gg=gateOf(h.a,h.b,p);return `<tr><td>${h.t}</td><td>${h.gd.toFixed(2)}</td><td>${h.bd.toFixed(2)}</td><td>${h.a.toFixed(2)}</td><td>${h.b.toFixed(2)}</td><td>${Tof(h.a,h.b).toFixed(3)}</td><td>${(h.a+h.b).toFixed(2)}</td><td><span class="pill ${gg[0]}">${gg[1].split(' (')[0]}</span></td></tr>`}).join('')||'<tr><td colspan="8" class="note">No slots yet. Add evidence and press End slot.</td></tr>';
+ drawLab(p)}
+function drawLab(p){const s=$('labChart'),W=460,H=170,x0=36,y0=12,x1=450,y1=146;const pts=[{t:0,T:0.5}].concat(L.hist.map(h=>({t:h.t,T:Tof(h.a,h.b)})));
+ const n=Math.max(5,pts.length-1);const X=t=>x0+(x1-x0)*t/n,Y=v=>y1-(y1-y0)*v;
+ let h=`<rect x="0" y="0" width="${W}" height="${H}" fill="var(--surface)"/>`;
+ [0,0.25,0.5,0.75,1].forEach(v=>{h+=`<line x1="${x0}" x2="${x1}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${x0-6}" y="${Y(v)+4}" font-size="10" text-anchor="end" fill="var(--fg3)">${v}</text>`});
+ h+=`<line x1="${x0}" x2="${x1}" y1="${Y(p.th)}" y2="${Y(p.th)}" stroke="var(--bad)" stroke-dasharray="4 3"/><text x="${x1}" y="${Y(p.th)-4}" font-size="10" text-anchor="end" fill="var(--bad)">gate ${p.th.toFixed(2)}</text>`;
+ h+=`<polyline fill="none" stroke="var(--accent)" stroke-width="2.5" points="${pts.map(q=>X(q.t)+','+Y(q.T)).join(' ')}"/>`;
+ pts.forEach(q=>{h+=`<circle cx="${X(q.t)}" cy="${Y(q.T)}" r="4" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"><title>slot ${q.t}: T = ${q.T.toFixed(3)}</title></circle>`});
+ h+=`<text x="${(x0+x1)/2}" y="${H-4}" font-size="10" text-anchor="middle" fill="var(--fg3)">slot</text>`;s.innerHTML=h}
+$('ev-pp').onclick=()=>addEv('pp');$('ev-pf').onclick=()=>addEv('pf');$('ev-pl').onclick=()=>addEv('pl');$('ev-cs').onclick=()=>addEv('cs');$('ev-cf').onclick=()=>addEv('cf');
+$('endslot').onclick=endSlot;$('reset').onclick=()=>{Object.assign(L,{a:0,b:0,good:0,bad:0,t:0,hist:[],last:null});renderLab()};
+['g','r','lp','th','nm'].forEach(id=>$(id).addEventListener('input',renderLab));
+$('demo').onclick=()=>{$('reset').onclick();const seq=[['pp','cs'],['pp','cs','cs'],['cs'],['pl','cf'],['cf'],['pp']];seq.forEach(s=>{s.forEach(addEv);endSlot()})};
+renderLab();
+
+/* ---------- 3 blame ---------- */
+function renderBlame(){const Ts=[+$('bt1').value,+$('bt2').value,+$('bt3').value];['bt1','bt2','bt3'].forEach((id,i)=>$(id+'o').textContent=Ts[i].toFixed(2));
+ const k=+$('bk').value;const names=['A','B','C'].slice(0,k);const w=names.map((_,i)=>(1-Ts[i])+1e-3);const s=w.reduce((x,y)=>x+y,0);
+ $('blameT').innerHTML=names.map((n,i)=>`<tr><td><b>${n}</b></td><td>${Ts[i].toFixed(2)}</td><td>${w[i].toFixed(3)}</td><td><b>${(w[i]/s*100).toFixed(1)}%</b></td><td>${(w[i]/s).toFixed(3)} → ${(3*w[i]/s).toFixed(3)}</td></tr>`).join('');
+ const cols=['var(--accent)','var(--warn)','var(--bad)'];let x=0,h='';names.forEach((n,i)=>{const ww=440*w[i]/s;h+=`<rect x="${10+x}" y="6" width="${Math.max(0,ww-2)}" height="26" rx="4" fill="${cols[i]}"><title>${n}: ${(w[i]/s*100).toFixed(1)}%</title></rect>`;if(ww>40)h+=`<text x="${10+x+ww/2}" y="24" font-size="12" text-anchor="middle" fill="#fff" font-weight="700">${n} ${(w[i]/s*100).toFixed(0)}%</text>`;x+=ww});$('blameBar').innerHTML=h}
+['bt1','bt2','bt3','bk'].forEach(id=>$(id).addEventListener('input',renderBlame));renderBlame();
+
+/* ---------- 4 live sim ---------- */
+const C={P_FAULT:0.02,OUTCOME_DETECT:0.9,GAMMA:0.9,RHO:3,LIE_PENALTY:2,N_MIN:3,TH:0.6,PROBES:3,N:10,CHAINS:8,SLOTS:50};
+function rngOf(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function sample(rng,arr,k){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a.slice(0,k)}
+let S=null,timer=null;
+function newWorld(){const seed=+$('sm-seed').value,mode=$('sm-mode').value,frac=+$('sm-frac').value;
+ const sel=rngOf(seed*104729+3);const hacked=new Set(sample(sel,[...Array(C.N).keys()],Math.round(frac*C.N)));
+ const mk=scheme=>({scheme,rng:rngOf(seed*7919+1),a:Array(C.N).fill(0),b:Array(C.N).fill(0),served:0,pois:0,series:[],log:''});
+ S={t:0,mode,hacked,ptamper:mode==='stealthy'?0.2:0.8,sch:[mk('none'),mk('gate'),mk('oracle')]};renderSim()}
+const T2=(s,i)=>(s.a[i]+1)/(s.a[i]+s.b[i]+2);
+function allowed(s,i){if(s.scheme==='none')return true;if(s.scheme==='oracle')return!S.hacked.has(i);const n=s.a[i]+s.b[i];return n<C.N_MIN||T2(s,i)>=C.TH}
+function attacking(i,t){if(!S.hacked.has(i))return false;if(S.mode==='onoff')return Math.floor(t/5)%2===1;return true}
+function stepSim(){if(!S||S.t>=C.SLOTS)return;const t=S.t;
+ S.sch.forEach(s=>{const R=s.rng;const good=Array(C.N).fill(0),bad=Array(C.N).fill(0);const learn=s.scheme==='gate';let lines=[];
+  const tampers=i=>attacking(i,t)&&R()<S.ptamper,fault=i=>!S.hacked.has(i)&&R()<C.P_FAULT;
+  const ok=[...Array(C.N).keys()].filter(i=>allowed(s,i));
+  for(let c=0;c<C.CHAINS;c++){if(!ok.length)break;const L=Math.min(ok.length,R()<0.5?2:3);const chain=sample(R,ok,L);
+   let pois=false;chain.forEach(i=>{if(tampers(i))pois=true});const flt=chain.some(fault);const obs=(pois&&R()<C.OUTCOME_DETECT)||flt;
+   s.served++;if(pois)s.pois++;
+   if(learn){if(!obs)chain.forEach(i=>good[i]+=1/chain.length);else{const w=chain.map(i=>(1-T2(s,i))+1e-3),sm=w.reduce((x,y)=>x+y,0);chain.forEach((i,j)=>bad[i]+=w[j]/sm)}}
+   if(learn)lines.push(`chain RSUs [${chain.join(', ')}] → ${pois?'POISONED':'clean'}${obs?' · check says FAIL → blame split':' · check says OK → small credit'}`)}
+  if(learn){sample(R,[...Array(C.N).keys()],C.PROBES).forEach(i=>{const f=tampers(i)||fault(i);const claim=S.hacked.has(i)?true:!f;
+    if(f){bad[i]+=1;if(claim){bad[i]+=C.LIE_PENALTY;lines.push(`probe RSU ${i}: FAILED and it claimed "healthy" → lie caught (+1 +2 bad)`)}else lines.push(`probe RSU ${i}: failed, RSU admitted it (+1 bad)`)}else{good[i]+=1;lines.push(`probe RSU ${i}: passed (+1 good)`)}});
+   for(let i=0;i<C.N;i++){s.a[i]=C.GAMMA*s.a[i]+good[i];s.b[i]=C.GAMMA*s.b[i]+C.RHO*bad[i]}
+   s.log=`slot ${t}${S.mode==='onoff'?(attacking([...S.hacked][0],t)?' (attackers ON)':' (attackers OFF)'):''}\n`+lines.join('\n')}
+  s.series.push(s.served?100*s.pois/s.served:0)});
+ S.t++;renderSim()}
+function renderSim(){$('sm-t').textContent=S.t;const g=S.sch[1];
+ const svg=$('sm-net'),cx=180,cy=150,R=110;let h=`<rect width="360" height="300" fill="var(--surface)"/>`;
+ for(let i=0;i<C.N;i++){const ang=-Math.PI/2+2*Math.PI*i/C.N,x=cx+R*Math.cos(ang),y=cy+R*Math.sin(ang);const n=g.a[i]+g.b[i],T=T2(g,i);
+  const col=n<C.N_MIN?'var(--warn)':(T>=C.TH?'var(--good)':'var(--bad)');
+  h+=`<circle cx="${x}" cy="${y}" r="24" fill="${col}" stroke="var(--surface)" stroke-width="3"><title>RSU ${i}: T = ${T.toFixed(3)}, n = ${n.toFixed(2)}${S.hacked.has(i)?' (hacked)':''}</title></circle>`;
+  h+=`<text x="${x}" y="${y-2}" font-size="12" text-anchor="middle" fill="#fff" font-weight="700">RSU ${i}</text><text x="${x}" y="${y+12}" font-size="11" text-anchor="middle" fill="#fff">${T.toFixed(2)}</text>`;
+  if(S.hacked.has(i))h+=`<text x="${x+20}" y="${y-16}" font-size="16" text-anchor="middle" fill="var(--fg)" font-weight="700">✕</text>`}
+ h+=`<text x="${cx}" y="${cy-4}" font-size="12" text-anchor="middle" fill="var(--fg2)">gate = T ≥ 0.6</text><text x="${cx}" y="${cy+12}" font-size="12" text-anchor="middle" fill="var(--fg2)">(or n &lt; 3)</text>`;svg.innerHTML=h;
+ const c=$('sm-chart'),W=460,H=220,x0=40,y0=14,x1=330,y1=190;const ymax=Math.max(10,Math.ceil(Math.max(...S.sch.flatMap(s=>s.series),0)/10)*10);
+ const X=t=>x0+(x1-x0)*t/(C.SLOTS-1),Y=v=>y1-(y1-y0)*v/ymax;let ch=`<rect width="${W}" height="${H}" fill="var(--surface)"/>`;
+ for(let v=0;v<=ymax;v+=ymax/5)ch+=`<line x1="${x0}" x2="${x1}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${x0-6}" y="${Y(v)+4}" font-size="10" text-anchor="end" fill="var(--fg3)">${Math.round(v)}%</text>`;
+ [0,10,20,30,40,49].forEach(t=>ch+=`<text x="${X(t)}" y="${y1+16}" font-size="10" text-anchor="middle" fill="var(--fg3)">${t}</text>`);
+ ch+=`<text x="${(x0+x1)/2}" y="${H-2}" font-size="10" text-anchor="middle" fill="var(--fg3)">slot</text>`;
+ const cols={none:'var(--bad)',gate:'var(--accent)',oracle:'var(--good)'},names={none:'SPAVM',gate:'Trust (ours)',oracle:'Oracle'};
+ const labs=[];S.sch.forEach(s=>{if(s.series.length){ch+=`<polyline fill="none" stroke="${cols[s.scheme]}" stroke-width="2.5" points="${s.series.map((v,t)=>X(t)+','+Y(v)).join(' ')}"/>`;
+  const v=s.series.at(-1),t=s.series.length-1;ch+=`<circle cx="${X(t)}" cy="${Y(v)}" r="4" fill="${cols[s.scheme]}"/>`;labs.push({y:Y(v)+4,txt:`${names[s.scheme]} ${v.toFixed(1)}%`,c:cols[s.scheme]})}});
+ labs.sort((a,b)=>a.y-b.y);for(let i=1;i<labs.length;i++)if(labs[i].y-labs[i-1].y<14)labs[i].y=labs[i-1].y+14;
+ labs.forEach(l=>{ch+=`<text x="${x1+10}" y="${l.y}" font-size="11.5" font-weight="600" fill="${l.c}">${l.txt}</text>`});
+ c.innerHTML=ch;
+ $('sm-tab').innerHTML=S.sch.map(s=>{const hb=[...Array(C.N).keys()].filter(i=>!S.hacked.has(i)&&!allowed(s,i)).length;
+  return `<tr><td><span class="sw" style="background:${cols[s.scheme]}"></span>${names[s.scheme]}</td><td>${s.served}</td><td>${s.pois}</td><td><b>${s.served?(100*s.pois/s.served).toFixed(1):'0.0'}%</b></td><td>${hb}</td></tr>`}).join('');
+ $('sm-log').textContent=g.log||'Press "Step 1 slot" to watch the security step: chains, checks, probes and lies.'}
+$('sm-step').onclick=()=>{stopPlay();stepSim()};
+function stopPlay(){if(timer){clearInterval(timer);timer=null;$('sm-play').textContent='Play 50 slots'}}
+$('sm-play').onclick=()=>{if(timer){stopPlay();return}if(S.t>=C.SLOTS)newWorld();$('sm-play').textContent='Pause';
+ const fast=window.matchMedia('(prefers-reduced-motion: reduce)').matches;timer=setInterval(()=>{stepSim();if(S.t>=C.SLOTS)stopPlay()},fast?10:180)};
+$('sm-reset').onclick=()=>{stopPlay();newWorld()};['sm-mode','sm-frac','sm-seed'].forEach(id=>$(id).addEventListener('change',()=>{stopPlay();newWorld()}));
+newWorld();
+
+/* ---------- 5 code ---------- */
+const CODE=[
+ {grp:"Attacker (spavm/attacker.py) · who is hacked and what they do"},
+ {name:"Attacker.__init__",file:"spavm/attacker.py",code:`def __init__(self, num_rsus, select_rng, event_rng, fraction=None, mode=None):
+    fraction = config.ATTACK_FRACTION if fraction is None else fraction
+    self.mode = config.ATTACK_MODE if mode is None else mode
+    k = round(fraction * num_rsus)
+    self.malicious = set(select_rng.sample(range(num_rsus), k)) if k else set()
+    self.rng = event_rng`,
+  what:"Picks which RSUs are hacked, once, at the start. With 10 RSUs and 20%: k = round(0.2 × 10) = 2 RSUs. select_rng.sample picks 2 different RSU ids at random. A separate random generator is used so SPAVM, Trust and Oracle all get the same hacked RSUs.",calls:"Simulator.__init__"},
+ {name:"is_malicious(rid)",file:"spavm/attacker.py",code:`def is_malicious(self, rid):
+    return rid in self.malicious`,what:"Ground truth: is this RSU really hacked? Only the measuring code and the Oracle use it. Our trust method never sees it.",calls:"_security (counting), gate() in oracle mode"},
+ {name:"attacking(rid, t)",file:"spavm/attacker.py",code:`def attacking(self, rid, t):
+    if rid not in self.malicious:
+        return False
+    if self.mode == "onoff":
+        return (t // config.ONOFF_PERIOD) % 2 == 1
+    return True`,what:"Is this hacked RSU attacking in slot t? Always-bad: yes every slot. On-off: t // 5 counts blocks of 5 slots; odd blocks (slots 5–9, 15–19, …) attack, even blocks behave well.",calls:"tampers()"},
+ {name:"tampers(rid, t)",file:"spavm/attacker.py",code:`def tampers(self, rid, t):
+    return self.attacking(rid, t) and self.rng.random() < config.P_TAMPER`,what:"Does this RSU corrupt the chain passing through it right now? Only if it is attacking AND a random number is below P_TAMPER (0.8; stealthy: 0.2).",calls:"_security (each chain), probe_fails()"},
+ {name:"honest_fault(rid)",file:"spavm/attacker.py",code:`def honest_fault(self, rid):
+    return rid not in self.malicious and self.rng.random() < config.P_FAULT`,what:"An honest RSU fails by accident 2% of the time. This noise is why one failure does not prove an attack.",calls:"_security, probe_fails()"},
+ {name:"probe_fails(rid, t)",file:"spavm/attacker.py",code:`def probe_fails(self, rid, t):
+    return self.tampers(rid, t) or self.honest_fault(rid)`,what:"The controller sends a known test packet through the RSU. It comes back wrong if the RSU tampers now, or has an honest fault.",calls:"_security (probes)"},
+ {name:"self_report_healthy(rid, probe_failed)",file:"spavm/attacker.py",code:`def self_report_healthy(self, rid, probe_failed):
+    if rid in self.malicious:
+        return True
+    return not probe_failed`,what:"What the RSU claims about itself. Hacked RSUs always say 'healthy'. Honest RSUs tell the truth. Comparing this claim with the probe result is how lies are caught.",calls:"_security (probes)"},
+ {grp:"TrustManager (spavm/trust.py) · the trust score"},
+ {name:"TrustManager.__init__",file:"spavm/trust.py",code:`def __init__(self, num_rsus):
+    self.a = [0.0] * num_rsus
+    self.b = [0.0] * num_rsus
+    self.quarantined = set()
+    self._good = [0.0] * num_rsus
+    self._bad = [0.0] * num_rsus
+    self.probes_sent = 0
+    self.lies_caught = 0`,what:"Two counters per RSU: a = good evidence, b = bad evidence, both 0 at start (so T = 0.5). _good and _bad collect this slot's evidence; they are added at the end of the slot.",calls:"Simulator.__init__"},
+ {name:"T(rid) and n(rid)",file:"spavm/trust.py",code:`def T(self, rid):
+    return (self.a[rid] + 1.0) / (self.a[rid] + self.b[rid] + 2.0)
+
+def n(self, rid):
+    return self.a[rid] + self.b[rid]`,what:"T = trust score between 0 and 1 (mean of a Beta(a+1, b+1) distribution). n = how much evidence we have. Try it in tab 2.",calls:"allowed(), record_outcome(), end_slot()"},
+ {name:"allowed(rid)",file:"spavm/trust.py",code:`def allowed(self, rid):
+    if rid in self.quarantined:
+        return False
+    if self.n(rid) < config.N_MIN:
+        return True
+    return self.T(rid) >= config.TRUST_THETA`,what:"The trust gate. Quarantined → no. Less than 3 evidence → yes (benefit of the doubt). Otherwise yes only if T ≥ 0.6.",calls:"Simulator.gate() in gate / quarantine mode"},
+ {name:"add_good / add_bad",file:"spavm/trust.py",code:`def add_good(self, rid, w=1.0):
+    self._good[rid] += w
+
+def add_bad(self, rid, w=1.0):
+    self._bad[rid] += w`,what:"Collect evidence during the slot. w = how much (1 for a probe, 1/k or a blame share for a chain).",calls:"record_probe(), record_outcome()"},
+ {name:"record_probe(rid, failed, claimed_healthy)",file:"spavm/trust.py",code:`def record_probe(self, rid, failed, claimed_healthy):
+    self.probes_sent += 1
+    if failed:
+        self.add_bad(rid)
+        if claimed_healthy:
+            self.add_bad(rid, config.LIE_PENALTY)
+            self.lies_caught += 1
+    else:
+        self.add_good(rid)`,what:"E1 + E3. Passed probe → good + 1. Failed probe → bad + 1. Failed but claimed healthy → caught lying, bad + 2 more. So one caught lie = 3 bad, × ρ = 9 into b.",calls:"_security (probes)"},
+ {name:"record_outcome(chain_rsus, success)",file:"spavm/trust.py",code:`def record_outcome(self, chain_rsus, success):
+    if not chain_rsus:
+        return
+    k = len(chain_rsus)
+    if success:
+        for r in chain_rsus:
+            self.add_good(r, 1.0 / k)
+    else:
+        w = {r: (1.0 - self.T(r)) + 1e-3 for r in chain_rsus}
+        s = sum(w.values())
+        for r in chain_rsus:
+            self.add_bad(r, w[r] / s)`,what:"E2. Chain worked → each of the k RSUs gets good + 1/k. Chain failed → 1 unit of blame split, more to less-trusted RSUs. Try it in tab 3.",calls:"_security (each served chain)"},
+ {name:"end_slot(use_quarantine)",file:"spavm/trust.py",code:`def end_slot(self, use_quarantine):
+    for i in range(len(self.a)):
+        self.a[i] = config.GAMMA * self.a[i] + self._good[i]
+        self.b[i] = config.GAMMA * self.b[i] + config.RHO * self._bad[i]
+        self._good[i] = self._bad[i] = 0.0
+    if use_quarantine:
+        for i in range(len(self.a)):
+            low = self.n(i) >= config.N_MIN and self.T(i) < config.TRUST_THETA_Q
+            if low:
+                self.quarantined.add(i)
+            elif i in self.quarantined and self.T(i) >= config.TRUST_THETA:
+                self.quarantined.discard(i)`,what:"The formula. Old evidence × γ (0.9) plus this slot's evidence; bad × ρ (3). Then reset the slot collectors. Quarantine mode: T < 0.3 with enough evidence → quarantined; T back to 0.6 → released.",calls:"_security, once per slot"},
+ {grp:"Simulator hooks (spavm/simulator.py) · where trust is used"},
+ {name:"gate(rid)",file:"spavm/simulator.py",code:`def gate(self, rid):
+    if self.trust_mode == "none":
+        return True
+    if self.trust_mode == "oracle":
+        return not self.attacker.is_malicious(rid)
+    return self.trust.allowed(rid)`,what:"The one question SPVIR and VIMA ask. none = plain SPAVM (trust everyone). oracle = knows the truth (best possible). gate / quarantine = our learned trust.",calls:"spvir.place() twice, vima.evaluate() once, _security (counting)"},
+ {name:"_security(t, placements, row)",file:"spavm/simulator.py",code:`for p in placements:
+    chain = distinct RSUs used by this SFC
+    poisoned = any(att.tampers(rsu, t) for each container)   # ground truth
+    fault    = any(att.honest_fault(r) for r in chain)
+    observed_fail = (poisoned and random() < OUTCOME_DETECT) or fault
+    row["poisoned"] += poisoned
+    if learning: tr.record_outcome(chain, success=not observed_fail)
+
+if learning:
+    for rid in random sample of round(0.3 * N) RSUs:
+        failed = att.probe_fails(rid, t)
+        tr.record_probe(rid, failed, att.self_report_healthy(rid, failed))
+    tr.end_slot(use_quarantine = trust_mode == "quarantine")
+
+for r in all RSUs:   count hacked-and-blocked / honest-and-blocked`,what:"The Phase 1 step at the end of each slot (shown here as short pseudocode; the real function has the same order). Ground truth decides 'poisoned'; only what the controller observes goes into trust.",calls:"_slot(), after SPVIR, VIMA and hop delay"},
+ {name:"_drain_quarantined()",file:"spavm/simulator.py",code:`def _drain_quarantined(self):
+    if self.trust_mode != "quarantine" or not self.trust.quarantined:
+        return 0
+    gone = [c for c in self.containers if c.rsu in self.trust.quarantined]
+    for c in gone:
+        self.rm.release(c.rsu, c.vnf.demand())
+        self.containers.remove(c)
+    return len(gone)`,what:"Quarantine mode only: at the start of a slot, delete all containers on quarantined RSUs and give their resources back. Tested; same result as the gate, so not our main method.",calls:"_slot(), start of each slot"},
+ {name:"share_cap(rid)  (Step 5, rejected)",file:"spavm/simulator.py",code:`def share_cap(self, rid):
+    full = config.MAX_SHARE
+    if not (self.share_limit and self.trust_mode in ("gate", "quarantine")):
+        return full
+    if tr.n(rid) < config.N_MIN:
+        return config.SHARE_UNKNOWN
+    frac = (tr.T(rid) - config.TRUST_THETA) / (1.0 - config.TRUST_THETA)
+    return max(1, min(full, 1 + round(frac * (full - 1))))`,what:"Optional idea: let less-trusted containers be shared by fewer chains (1 at T = 0.6 up to 4 at T = 1). Off by default: it added 30–45% delay and did not improve safety.",calls:"spvir.place() (reuse filter)"},
+ {grp:"Where SPAVM changed (spvir.py, vima.py)"},
+ {name:"SPVIR reuse and cold start",file:"spavm/spvir.py",code:`cands = [c for c in s.containers if c.vnf.fid == f.fid
+         and s.hop[ref][c.rsu] <= config.MU_HOPS
+         and c.load < s.share_cap(c.rsu)
+         and s.gate(c.rsu)]                     # PHASE 1
+
+rs = [r.rid for r in s.rsus
+      if s.hop[ref][r.rid] <= config.MU_HOPS and s.rm.fits(r.rid, f.demand())
+      and s.gate(r.rid)]                        # PHASE 1`,what:"Algorithm 1 unchanged except one extra condition in each list: reuse only containers on trusted RSUs, cold start only on trusted RSUs.",calls:"Simulator._slot() for each request"},
+ {name:"VIMA migration target",file:"spavm/vima.py",code:`for c, nj in moves:
+    if s.hop[c.rsu][nj] > config.MU_HOPS:
+        return None
+    if not s.gate(nj):                          # PHASE 1
+        return None`,what:"Algorithm 2 unchanged except: a move to a distrusted RSU is infeasible.",calls:"VIMA.run() for every trial move"}
+];
+const list=$('codeList');CODE.forEach(c=>{if(c.grp){const h=document.createElement('h3');h.textContent=c.grp;list.appendChild(h);return}
+ const d=document.createElement('details');d.innerHTML=`<summary>${esc(c.name)} <span class="file">${c.file}</span></summary><div class="body"><pre>${esc(c.code)}</pre><p style="margin:6px 0">${c.what}</p><p class="calls"><span class="tag">Called from</span> ${c.calls}</p></div>`;list.appendChild(d)});
+</script>

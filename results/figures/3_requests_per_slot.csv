@@ -1,0 +1,5 @@
+RSUs,vehicles,slots x seeds,lowest requests in a slot,highest requests in a slot,average requests per slot
+10,40,50 x 5,1,17,8.02
+20,80,50 x 5,5,28,16.2
+30,120,50 x 5,9,40,24.04
+40,160,50 x 5,16,52,31.99

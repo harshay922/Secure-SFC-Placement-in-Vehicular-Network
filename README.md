@@ -13,7 +13,14 @@ venv\Scripts\activate            # Windows
 pip install -r requirements.txt
 ```
 
-## 2. Run (in this order)
+## 2. Run
+
+**One click for everything (Windows):** double-click `run_everything.bat`. It installs the
+libraries, runs all 57 tests once (and stops if one fails), then makes all results: baseline,
+figures, Phase 1 and Phase 2 (about 4-5 minutes). Seeds are fixed, so the numbers are the same
+every time. For one part only: `run_all.bat` (baseline), `run_phase1.bat`, `run_phase2.bat`.
+
+### Step by step (in this order)
 | Command | What it does | Time |
 |---|---|---|
 | `pytest -v` | 20-point validation checklist. Run FIRST. | <1 s |
