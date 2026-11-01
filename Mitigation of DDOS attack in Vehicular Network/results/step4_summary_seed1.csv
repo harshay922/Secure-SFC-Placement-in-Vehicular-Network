@@ -1,0 +1,2 @@
+scheme,seed,requests,accepted_pct,avg_latency_ms,safety_latency_ms,nonsafety_latency_ms,safety_at_edge_pct,nonsafety_at_edge_pct,vnfs_on_cloud_pct,rsu_util_avg_pct,rsu_util_peak_pct
+S0_no_defense,1,703,100.0,10.896674153969649,11.388912738806917,10.768762693752079,100.0,100.0,0.0,12.195486111111114,100.0

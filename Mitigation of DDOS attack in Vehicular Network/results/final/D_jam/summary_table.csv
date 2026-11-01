@@ -1,0 +1,7 @@
+,win_active_sfcs,win_active_sfcs,win_hit_sfcs,win_hit_sfcs,win_failed_sfcs,win_failed_sfcs,win_cloud_sfcs,win_cloud_sfcs,win_edge_sfcs,win_edge_sfcs,win_migrated_sfcs,win_migrated_sfcs,window_failed_pct,window_failed_pct,window_dropped_pct,window_dropped_pct,window_running_latency_ms,window_running_latency_ms,window_latency_ms,window_latency_ms,window_at_edge_pct,window_at_edge_pct,vnfs_on_cloud_pct,vnfs_on_cloud_pct,window_disrupted_sfc_s,window_disrupted_sfc_s,detection_rate_pct,detection_rate_pct,detection_delay_s,detection_delay_s,migrations,migrations,migrations_to_cloud,migrations_to_cloud
+,mean,std,mean,std,mean,std,mean,std,mean,std,mean,std,mean,std,mean,std,mean,std,mean,std,mean,std,mean,std,mean,std,mean,std,mean,std,mean,std,mean,std
+scheme,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+S0_no_defense,264.8,10.16,134.0,11.66,120.2,20.2,123.2,20.64,141.6,12.82,0.0,0.0,47.32,6.18,0.0,0.0,60.74,7.51,62.55,6.94,51.65,6.48,24.05,2.56,11.0,24.6,,,,,0.0,0.0,0.0,0.0
+S1_detect_only,264.8,10.16,134.0,11.66,129.6,13.26,132.6,13.7,132.2,7.16,0.0,0.0,51.16,3.32,0.0,0.0,61.08,4.55,62.97,4.26,47.81,3.64,29.04,2.78,0.0,0.0,96.0,8.94,0.08,0.11,0.0,0.0,0.0,0.0
+S2_detect_scaleout,264.8,10.16,134.0,11.66,0.8,1.1,3.6,1.34,261.2,9.01,0.0,0.0,0.31,0.43,0.0,0.0,12.28,1.24,12.09,1.25,98.74,0.55,1.13,0.21,0.0,0.0,92.0,10.95,0.08,0.11,0.0,0.0,0.0,0.0
+S3_proposed,264.8,10.16,121.6,12.66,0.8,1.1,3.6,1.34,261.2,9.01,5.8,1.92,0.31,0.43,0.0,0.0,11.94,1.23,11.98,1.25,98.74,0.55,1.13,0.21,0.0,0.0,92.0,10.95,0.08,0.11,25.0,1.58,0.0,0.0

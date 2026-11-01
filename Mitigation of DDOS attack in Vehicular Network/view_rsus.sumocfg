@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Same as powai.sumocfg, plus the RSU circles and fibre links from Step 3 -->
+<sumoConfiguration>
+    <input>
+        <net-file value="osm.net.xml.gz"/>
+        <route-files value="osm.passenger.trips.xml"/>
+        <additional-files value="osm.poly.xml.gz,rsus.add.xml"/>
+    </input>
+    <time><begin value="0"/><end value="3600"/></time>
+    <processing><ignore-route-errors value="true"/><scale value="1"/></processing>
+    <random_number><seed value="42"/></random_number>
+    <report><no-step-log value="true"/></report>
+    <gui_only><gui-settings-file value="osm.view.xml"/></gui_only>
+</sumoConfiguration>
